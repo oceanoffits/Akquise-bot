@@ -51,3 +51,19 @@ export const INFLUENCER_STATUSES: InfluencerStatus[] = [
   "DECLINED",
   "CUSTOMER",
 ];
+
+export type AppTab = "influencers" | "research";
+
+export interface ResearchSuggestion {
+  name: string;
+  instagramHandle: string | null;
+  estimatedFollowers: number | null;
+  matchReason: string;
+  pitchAngle: string;
+}
+
+export interface ResearchResult {
+  niche: string;
+  campaignGoal: string | null;
+  suggestions: ResearchSuggestion[];
+}

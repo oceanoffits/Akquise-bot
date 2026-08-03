@@ -3,10 +3,12 @@ import "./App.css";
 import { ApiClient } from "./api";
 import { useSettings } from "./useSettings";
 import { SettingsBar } from "./components/SettingsBar";
+import { Sidebar } from "./components/Sidebar";
 import { InfluencerList } from "./components/InfluencerList";
 import { InfluencerDetail } from "./components/InfluencerDetail";
 import { AddInfluencerModal } from "./components/AddInfluencerModal";
-import type { Influencer, InfluencerStatus, InfluencerWithMessages } from "./types";
+import { ResearchPanel } from "./components/ResearchPanel";
+import type { AppTab, Influencer, InfluencerStatus, InfluencerWithMessages } from "./types";
 
 function App() {
   const { serverUrl, setServerUrl, token, setToken } = useSettings();
@@ -23,6 +25,7 @@ function App() {
   const [selected, setSelected] = useState<InfluencerWithMessages | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<AppTab>("influencers");
 
   const checkConnection = useCallback(async () => {
     setConnectionStatus("checking");
@@ -80,72 +83,84 @@ function App() {
   const configured = serverUrl.trim() !== "" && token.trim() !== "";
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Ocean Office · Akquise-Bot</h1>
-        <SettingsBar
-          serverUrl={serverUrl}
-          setServerUrl={setServerUrl}
-          token={token}
-          setToken={setToken}
-          status={connectionStatus}
-          onCheck={checkConnection}
-        />
-      </header>
-
-      {!configured && (
-        <div className="empty-state main-empty">
-          Bitte Server-URL und API-Token oben eintragen.
-        </div>
-      )}
-
-      {configured && connectionStatus === "error" && (
-        <div className="error-banner">
-          Verbindung zum Server fehlgeschlagen. Läuft der Server? Stimmt die URL / der Token?
-        </div>
-      )}
-
+    <div className="app-shell">
       {configured && (
-        <main className="app-main">
-          <InfluencerList
-            influencers={influencers}
-            loading={loadingList}
-            search={search}
-            onSearch={setSearch}
-            statusFilter={statusFilter}
-            onStatusFilter={setStatusFilter}
-            onSelect={setSelectedId}
-            selectedId={selectedId}
-            onAddClick={() => setShowAddModal(true)}
+        <Sidebar active={activeTab} onChange={setActiveTab} influencerCount={influencers.length} />
+      )}
+      <div className="app">
+        <header className="app-header">
+          <h1>Ocean Office · Akquise-Bot</h1>
+          <SettingsBar
+            serverUrl={serverUrl}
+            setServerUrl={setServerUrl}
+            token={token}
+            setToken={setToken}
+            status={connectionStatus}
+            onCheck={checkConnection}
           />
-          <section className="detail-pane">
-            {listError && <div className="error-text">{listError}</div>}
-            {selected ? (
-              <InfluencerDetail
-                api={api}
-                influencer={selected}
-                onChanged={() => {
-                  loadSelected();
-                  loadInfluencers();
-                }}
-              />
-            ) : (
-              <div className="empty-state">Wähle links einen Influencer aus.</div>
-            )}
-          </section>
-        </main>
-      )}
+        </header>
 
-      {showAddModal && (
-        <AddInfluencerModal
-          onClose={() => setShowAddModal(false)}
-          onCreate={async (payload) => {
-            const created = await api.createInfluencer(payload);
-            await loadInfluencers();
-            setSelectedId(created.id);
-          }}
-        />
-      )}
+        {!configured && (
+          <div className="empty-state main-empty">
+            Bitte Server-URL und API-Token oben eintragen.
+          </div>
+        )}
+
+        {configured && connectionStatus === "error" && (
+          <div className="error-banner">
+            Verbindung zum Server fehlgeschlagen. Läuft der Server? Stimmt die URL / der Token?
+          </div>
+        )}
+
+        {configured && activeTab === "influencers" && (
+          <main className="app-main">
+            <InfluencerList
+              influencers={influencers}
+              loading={loadingList}
+              search={search}
+              onSearch={setSearch}
+              statusFilter={statusFilter}
+              onStatusFilter={setStatusFilter}
+              onSelect={setSelectedId}
+              selectedId={selectedId}
+              onAddClick={() => setShowAddModal(true)}
+            />
+            <section className="detail-pane">
+              {listError && <div className="error-text">{listError}</div>}
+              {selected ? (
+                <InfluencerDetail
+                  api={api}
+                  influencer={selected}
+                  onChanged={() => {
+                    loadSelected();
+                    loadInfluencers();
+                  }}
+                />
+              ) : (
+                <div className="empty-state">Wähle links einen Influencer aus.</div>
+              )}
+            </section>
+          </main>
+        )}
+
+        {configured && activeTab === "research" && (
+          <main className="app-main app-main-single">
+            <ResearchPanel api={api} onInfluencerAdded={loadInfluencers} />
+          </main>
+        )}
+
+        {showAddModal && (
+          <AddInfluencerModal
+            onClose={() => setShowAddModal(false)}
+            onCreate={async (payload) => {
+              const created = await api.createInfluencer(payload);
+              await loadInfluencers();
+              setSelectedId(created.id);
+              setActiveTab("influencers");
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

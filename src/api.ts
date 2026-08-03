@@ -5,6 +5,7 @@ import type {
   Message,
   MessageChannel,
   MessageStatus,
+  ResearchResult,
 } from "./types";
 
 export class ApiError extends Error {
@@ -107,6 +108,10 @@ export class ApiClient {
 
   markMessageReplied(id: string, replyBody?: string) {
     return this.request<Influencer>(`messages/${id}/mark-replied`, "POST", { replyBody });
+  }
+
+  researchInfluencers(payload: { niche: string; campaignGoal?: string; count?: number }) {
+    return this.request<ResearchResult>("research", "POST", payload);
   }
 
   health() {
