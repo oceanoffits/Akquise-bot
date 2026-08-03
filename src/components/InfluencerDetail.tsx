@@ -56,10 +56,10 @@ export function InfluencerDetail({ api, influencer, onChanged }: Props) {
     setBusyMessageId(null);
   }
 
-  async function handleSendEmail(messageId: string) {
+  async function handleSendMessage(messageId: string) {
     setBusyMessageId(messageId);
     await withBusy(async () => {
-      await api.sendEmailMessage(messageId);
+      await api.sendMessage(messageId);
       onChanged();
     });
     setBusyMessageId(null);
@@ -105,6 +105,12 @@ export function InfluencerDetail({ api, influencer, onChanged }: Props) {
           <>
             <dt>Instagram</dt>
             <dd>@{influencer.instagramHandle}</dd>
+          </>
+        )}
+        {influencer.instagramUserId && (
+          <>
+            <dt>Instagram User ID</dt>
+            <dd>{influencer.instagramUserId}</dd>
           </>
         )}
         {influencer.email && (
@@ -198,17 +204,18 @@ export function InfluencerDetail({ api, influencer, onChanged }: Props) {
                       <button
                         className="primary"
                         disabled={isBusy}
-                        onClick={() => handleSendEmail(m.id)}
+                        onClick={() => handleSendMessage(m.id)}
                       >
                         Per E-Mail senden
                       </button>
                     ) : (
                       <button
                         className="primary"
-                        disabled={isBusy}
-                        onClick={() => handleMarkSent(m.id)}
+                        disabled={isBusy || !influencer.instagramUserId}
+                        title={!influencer.instagramUserId ? "Instagram User ID nicht hinterlegt" : ""}
+                        onClick={() => handleSendMessage(m.id)}
                       >
-                        Als gesendet markieren
+                        Instagram DM senden
                       </button>
                     )}
                   </div>

@@ -5,6 +5,7 @@ interface Props {
   onCreate: (payload: {
     name: string;
     instagramHandle?: string;
+    instagramUserId?: string;
     email?: string;
     niche?: string;
     followerCount?: number;
@@ -16,6 +17,7 @@ interface Props {
 export function AddInfluencerModal({ onClose, onCreate }: Props) {
   const [name, setName] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
+  const [instagramUserId, setInstagramUserId] = useState("");
   const [email, setEmail] = useState("");
   const [niche, setNiche] = useState("");
   const [followerCount, setFollowerCount] = useState("");
@@ -36,6 +38,7 @@ export function AddInfluencerModal({ onClose, onCreate }: Props) {
       await onCreate({
         name: name.trim(),
         instagramHandle: instagramHandle.trim() || undefined,
+        instagramUserId: instagramUserId.trim() || undefined,
         email: email.trim() || undefined,
         niche: niche.trim() || undefined,
         followerCount: followerCount ? Number(followerCount) : undefined,
@@ -61,6 +64,10 @@ export function AddInfluencerModal({ onClose, onCreate }: Props) {
         <label>
           Instagram-Handle
           <input value={instagramHandle} onChange={(e) => setInstagramHandle(e.target.value)} />
+        </label>
+        <label>
+          Instagram User ID (fur DM-Versand erforderlich)
+          <input value={instagramUserId} onChange={(e) => setInstagramUserId(e.target.value)} />
         </label>
         <label>
           E-Mail

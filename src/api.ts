@@ -97,7 +97,7 @@ export class ApiClient {
     return this.request<Message>(`messages/${id}`, "PATCH", payload);
   }
 
-  sendEmailMessage(id: string) {
+  sendMessage(id: string) {
     return this.request<Message>(`messages/${id}/send`, "POST");
   }
 

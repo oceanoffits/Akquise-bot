@@ -14,6 +14,7 @@ export interface Influencer {
   id: string;
   name: string;
   instagramHandle: string | null;
+  instagramUserId: string | null;
   email: string | null;
   niche: string | null;
   followerCount: number | null;
