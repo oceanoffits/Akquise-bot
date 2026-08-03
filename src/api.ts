@@ -29,12 +29,14 @@ export class ApiClient {
 
   private async request<T>(path: string, method: string, body?: unknown): Promise<T> {
     const url = `${this.serverUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.token}`,
+    };
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+
     const res = await fetch(url, {
       method,
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        "Content-Type": "application/json",
-      },
+      headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
 
