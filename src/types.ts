@@ -60,10 +60,19 @@ export interface ResearchSuggestion {
   estimatedFollowers: number | null;
   matchReason: string;
   pitchAngle: string;
+  sources: string[];
 }
 
 export interface ResearchResult {
   niche: string;
   campaignGoal: string | null;
   suggestions: ResearchSuggestion[];
+}
+
+export interface ResearchHistoryEntry {
+  id: string;
+  niche: string;
+  campaignGoal: string | null;
+  suggestions: ResearchSuggestion[];
+  createdAt: string;
 }

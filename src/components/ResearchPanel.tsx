@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ApiClient } from "../api";
-import type { ResearchSuggestion } from "../types";
+import type { ResearchHistoryEntry, ResearchSuggestion } from "../types";
 
 interface Props {
   api: ApiClient;
@@ -17,6 +17,24 @@ export function ResearchPanel({ api, onInfluencerAdded }: Props) {
   const [addingKey, setAddingKey] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
 
+  const [history, setHistory] = useState<ResearchHistoryEntry[] | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [viewingEntry, setViewingEntry] = useState<ResearchHistoryEntry | null>(null);
+
+  async function loadHistory() {
+    try {
+      const entries = await api.fetchResearchHistory();
+      setHistory(entries);
+    } catch {
+      // Verlauf ist ein Zusatzfeature - Fehler hier blockieren nicht die recherche
+    }
+  }
+
+  useEffect(() => {
+    loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!niche.trim()) {
@@ -26,6 +44,7 @@ export function ResearchPanel({ api, onInfluencerAdded }: Props) {
     setLoading(true);
     setError(null);
     setSuggestions(null);
+    setViewingEntry(null);
     setAddedHandles(new Set());
     try {
       const result = await api.researchInfluencers({
@@ -34,11 +53,20 @@ export function ResearchPanel({ api, onInfluencerAdded }: Props) {
         count: 5,
       });
       setSuggestions(result.suggestions);
+      loadHistory();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Recherche fehlgeschlagen.");
     } finally {
       setLoading(false);
     }
+  }
+
+  function openHistoryEntry(entry: ResearchHistoryEntry) {
+    setViewingEntry(entry);
+    setSuggestions(entry.suggestions);
+    setNiche(entry.niche);
+    setAddedHandles(new Set());
+    setError(null);
   }
 
   async function handleAdd(suggestion: ResearchSuggestion, key: string) {
@@ -94,8 +122,40 @@ export function ResearchPanel({ api, onInfluencerAdded }: Props) {
           <button type="submit" className="primary" disabled={loading}>
             {loading ? "Suche läuft…" : "5 Influencer vorschlagen"}
           </button>
+          {history && history.length > 0 && (
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => setHistoryOpen((v) => !v)}
+            >
+              Verlauf ({history.length}) {historyOpen ? "▲" : "▼"}
+            </button>
+          )}
         </div>
       </form>
+
+      {historyOpen && history && (
+        <div className="research-history">
+          {history.length === 0 && <div className="empty-state">Noch keine Recherchen archiviert.</div>}
+          <ul className="research-history-list">
+            {history.map((entry) => (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  className={`research-history-item${viewingEntry?.id === entry.id ? " active" : ""}`}
+                  onClick={() => openHistoryEntry(entry)}
+                >
+                  <span className="research-history-niche">{entry.niche}</span>
+                  <span className="research-history-meta">
+                    {new Date(entry.createdAt).toLocaleString("de-DE")} ·{" "}
+                    {entry.suggestions.length} Vorschläge
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {error && <div className="error-text">{error}</div>}
 
@@ -105,12 +165,20 @@ export function ResearchPanel({ api, onInfluencerAdded }: Props) {
         </div>
       )}
 
+      {viewingEntry && !loading && (
+        <div className="research-disclaimer">
+          Archivierte Recherche vom {new Date(viewingEntry.createdAt).toLocaleString("de-DE")}.
+        </div>
+      )}
+
       {suggestions && suggestions.length > 0 && (
         <>
-          <div className="research-disclaimer">
-            KI-generierte Vorschläge basierend auf Trainingswissen (keine Live-Websuche) – Angaben
-            vor Kontaktaufnahme prüfen.
-          </div>
+          {!viewingEntry && (
+            <div className="research-disclaimer">
+              KI-Recherche mit Live-Websuche – Angaben trotzdem vor Kontaktaufnahme manuell auf
+              Instagram prüfen (Handle, Follower-Zahl, Aktivität).
+            </div>
+          )}
           {addError && <div className="error-text">{addError}</div>}
           <div className="research-results">
             {suggestions.map((s, i) => {
@@ -137,6 +205,20 @@ export function ResearchPanel({ api, onInfluencerAdded }: Props) {
                     <div className="research-card-label">Vorschlag Ansatz</div>
                     <p>{s.pitchAngle}</p>
                   </div>
+                  {s.sources && s.sources.length > 0 && (
+                    <div className="research-card-block">
+                      <div className="research-card-label">Quellen</div>
+                      <ul className="research-card-sources">
+                        {s.sources.map((url) => (
+                          <li key={url}>
+                            <a href={url} target="_blank" rel="noreferrer noopener">
+                              {url}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="research-card-actions">
                     <button
                       className="primary"

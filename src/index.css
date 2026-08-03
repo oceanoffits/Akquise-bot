@@ -1,54 +1,84 @@
-:root {
-  --text: #4a4a52;
-  --text-h: #16161d;
-  --bg: #fafafa;
-  --surface: #fff;
-  --border: #e2e2e6;
-  --accent: #2563eb;
-  --accent-bg: rgba(37, 99, 235, 0.08);
-  --danger: #dc2626;
-  --danger-bg: rgba(220, 38, 38, 0.08);
-  --ok: #16a34a;
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+:root {
+  --bg: #0c0a14;
+  --bg-mesh-1: #ff6fae;
+  --bg-mesh-2: #7c6cf6;
+  --bg-mesh-3: #2f6bff;
+
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-solid: #17141f;
+  --surface-hover: rgba(255, 255, 255, 0.075);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --text: #a9a4bf;
+  --text-h: #f5f3fb;
+  --text-dim: #726d8c;
+
+  --accent-1: #ff6fae;
+  --accent-2: #ff9d5c;
+  --accent: #ff6fae;
+  --accent-bg: rgba(255, 111, 174, 0.14);
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+  --ok: #4ade80;
+  --ok-bg: rgba(74, 222, 128, 0.14);
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+
+  --sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
 
   font: 15px/1.5 var(--sans);
-  color-scheme: light dark;
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #b4b4bc;
-    --text-h: #f3f4f6;
-    --bg: #101114;
-    --surface: #1a1b20;
-    --border: #2c2d34;
-    --accent: #60a5fa;
-    --accent-bg: rgba(96, 165, 250, 0.12);
-    --danger: #f87171;
-    --danger-bg: rgba(248, 113, 113, 0.12);
-    --ok: #4ade80;
-  }
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
+  position: relative;
+  isolation: isolate;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 900px 700px at 8% -10%, color-mix(in srgb, var(--bg-mesh-1) 55%, transparent), transparent 60%),
+    radial-gradient(ellipse 800px 800px at 100% 0%, color-mix(in srgb, var(--bg-mesh-3) 45%, transparent), transparent 55%),
+    radial-gradient(ellipse 700px 600px at 30% 100%, color-mix(in srgb, var(--bg-mesh-2) 35%, transparent), transparent 55%),
+    var(--bg);
 }
 
 h1,
 h2,
 h3 {
   font-family: var(--sans);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-h);
   margin: 0;
+}
+
+a {
+  color: var(--accent-2);
 }
 
 input,
@@ -64,37 +94,64 @@ button {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-h);
-  border-radius: 6px;
-  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
 button.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--accent-gradient);
+  border-color: transparent;
+  color: #1a0e13;
+  font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
 }
 
 input,
 select,
 textarea {
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-dim);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
+  outline: none;
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
 }

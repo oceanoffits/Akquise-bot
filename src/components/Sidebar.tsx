@@ -14,9 +14,15 @@ const TABS: { key: AppTab; label: string; icon: string; hint: string }[] = [
 export function Sidebar({ active, onChange, influencerCount }: Props) {
   return (
     <nav className="sidebar">
-      <div className="sidebar-brand" title="Ocean Office">
-        🌊
+      <div className="sidebar-brand">
+        <span className="sidebar-brand-mark">🌊</span>
+        <span className="sidebar-brand-text">
+          <span className="sidebar-brand-name">Ocean Office</span>
+          <span className="sidebar-brand-sub">Akquise-Bot</span>
+        </span>
       </div>
+
+      <div className="sidebar-group-label">Workflow</div>
       <ul className="sidebar-tabs">
         {TABS.map((tab) => (
           <li key={tab.key}>

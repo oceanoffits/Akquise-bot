@@ -70,15 +70,18 @@ export function InfluencerList({
             className={inf.id === selectedId ? "selected" : ""}
             onClick={() => onSelect(inf.id)}
           >
-            <div className="row-main">
-              <span className="name">{inf.name}</span>
-              <span className={`badge badge-${inf.status.toLowerCase()}`}>
-                {statusLabels[inf.status]}
-              </span>
-            </div>
-            <div className="row-sub">
-              {inf.instagramHandle ? `@${inf.instagramHandle}` : inf.email ?? "—"}
-              {inf.followerCount ? ` · ${inf.followerCount.toLocaleString("de-DE")} Follower` : ""}
+            <span className="row-avatar">{inf.name.charAt(0).toUpperCase()}</span>
+            <div className="row-body">
+              <div className="row-main">
+                <span className="name">{inf.name}</span>
+                <span className={`badge badge-${inf.status.toLowerCase()}`}>
+                  {statusLabels[inf.status]}
+                </span>
+              </div>
+              <div className="row-sub">
+                {inf.instagramHandle ? `@${inf.instagramHandle}` : inf.email ?? "—"}
+                {inf.followerCount ? ` · ${inf.followerCount.toLocaleString("de-DE")} Follower` : ""}
+              </div>
             </div>
           </li>
         ))}

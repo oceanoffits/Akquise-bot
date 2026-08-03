@@ -5,6 +5,7 @@ import type {
   Message,
   MessageChannel,
   MessageStatus,
+  ResearchHistoryEntry,
   ResearchResult,
 } from "./types";
 
@@ -114,7 +115,32 @@ export class ApiClient {
     return this.request<ResearchResult>("research", "POST", payload);
   }
 
+  fetchResearchHistory() {
+    return this.request<ResearchHistoryEntry[]>("research/history", "GET");
+  }
+
   health() {
     return this.request<{ ok: boolean }>("health", "GET");
   }
+}
+
+// eigenständig, weil vor dem login noch kein Bearer-Token existiert
+export async function login(serverUrl: string, password: string): Promise<string> {
+  const url = `${serverUrl.replace(/\/$/, "")}/auth/login`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    throw new ApiError(res.status, text);
+  }
+
+  const data = text ? (JSON.parse(text) as { token?: string }) : {};
+  if (!data.token) {
+    throw new Error("Server hat keinen Token zurückgegeben.");
+  }
+  return data.token;
 }

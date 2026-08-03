@@ -1,14 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import { ApiClient } from "./api";
 import { useSettings } from "./useSettings";
 import { SettingsBar } from "./components/SettingsBar";
+import { LoginPage } from "./components/LoginPage";
 import { Sidebar } from "./components/Sidebar";
 import { InfluencerList } from "./components/InfluencerList";
+import { InfluencerStats } from "./components/InfluencerStats";
 import { InfluencerDetail } from "./components/InfluencerDetail";
 import { AddInfluencerModal } from "./components/AddInfluencerModal";
 import { ResearchPanel } from "./components/ResearchPanel";
 import type { AppTab, Influencer, InfluencerStatus, InfluencerWithMessages } from "./types";
+
+const TAB_LABELS: Record<AppTab, string> = {
+  influencers: "Influencer",
+  research: "KI-Recherche",
+};
 
 function App() {
   const { serverUrl, setServerUrl, token, setToken } = useSettings();
@@ -26,6 +33,8 @@ function App() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>("influencers");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   const checkConnection = useCallback(async () => {
     setConnectionStatus("checking");
@@ -80,6 +89,21 @@ function App() {
     loadSelected();
   }, [loadSelected]);
 
+  useEffect(() => {
+    if (!settingsOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [settingsOpen]);
+
+  if (!token.trim()) {
+    return <LoginPage serverUrl={serverUrl} onLoggedIn={setToken} />;
+  }
+
   const configured = serverUrl.trim() !== "" && token.trim() !== "";
 
   return (
@@ -89,22 +113,42 @@ function App() {
       )}
       <div className="app">
         <header className="app-header">
-          <h1>Ocean Office · Akquise-Bot</h1>
-          <SettingsBar
-            serverUrl={serverUrl}
-            setServerUrl={setServerUrl}
-            token={token}
-            setToken={setToken}
-            status={connectionStatus}
-            onCheck={checkConnection}
-          />
-        </header>
-
-        {!configured && (
-          <div className="empty-state main-empty">
-            Bitte Server-URL und API-Token oben eintragen.
+          <div className="app-breadcrumb">
+            <span className="app-breadcrumb-root">Ocean Office</span>
+            <span className="app-breadcrumb-sep">›</span>
+            <span className="app-breadcrumb-current">{TAB_LABELS[activeTab]}</span>
           </div>
-        )}
+
+          <div className="app-header-actions" ref={settingsRef}>
+            <span
+              className={`connection-pill status-${connectionStatus}`}
+              title={`Verbindung: ${connectionStatus}`}
+            >
+              <span className={`status-dot status-${connectionStatus}`} />
+              {connectionStatus === "ok" && "Verbunden"}
+              {connectionStatus === "error" && "Getrennt"}
+              {connectionStatus === "checking" && "Prüfe…"}
+              {connectionStatus === "idle" && "Nicht verbunden"}
+            </span>
+            <button
+              type="button"
+              className="settings-toggle"
+              onClick={() => setSettingsOpen((v) => !v)}
+              title="Verbindungseinstellungen"
+            >
+              ⚙︎
+            </button>
+            {settingsOpen && (
+              <SettingsBar
+                serverUrl={serverUrl}
+                setServerUrl={setServerUrl}
+                status={connectionStatus}
+                onCheck={checkConnection}
+                onLogout={() => setToken("")}
+              />
+            )}
+          </div>
+        </header>
 
         {configured && connectionStatus === "error" && (
           <div className="error-banner">
@@ -113,34 +157,37 @@ function App() {
         )}
 
         {configured && activeTab === "influencers" && (
-          <main className="app-main">
-            <InfluencerList
-              influencers={influencers}
-              loading={loadingList}
-              search={search}
-              onSearch={setSearch}
-              statusFilter={statusFilter}
-              onStatusFilter={setStatusFilter}
-              onSelect={setSelectedId}
-              selectedId={selectedId}
-              onAddClick={() => setShowAddModal(true)}
-            />
-            <section className="detail-pane">
-              {listError && <div className="error-text">{listError}</div>}
-              {selected ? (
-                <InfluencerDetail
-                  api={api}
-                  influencer={selected}
-                  onChanged={() => {
-                    loadSelected();
-                    loadInfluencers();
-                  }}
-                />
-              ) : (
-                <div className="empty-state">Wähle links einen Influencer aus.</div>
-              )}
-            </section>
-          </main>
+          <>
+            <InfluencerStats influencers={influencers} />
+            <main className="app-main">
+              <InfluencerList
+                influencers={influencers}
+                loading={loadingList}
+                search={search}
+                onSearch={setSearch}
+                statusFilter={statusFilter}
+                onStatusFilter={setStatusFilter}
+                onSelect={setSelectedId}
+                selectedId={selectedId}
+                onAddClick={() => setShowAddModal(true)}
+              />
+              <section className="detail-pane">
+                {listError && <div className="error-text">{listError}</div>}
+                {selected ? (
+                  <InfluencerDetail
+                    api={api}
+                    influencer={selected}
+                    onChanged={() => {
+                      loadSelected();
+                      loadInfluencers();
+                    }}
+                  />
+                ) : (
+                  <div className="empty-state">Wähle links einen Influencer aus.</div>
+                )}
+              </section>
+            </main>
+          </>
         )}
 
         {configured && activeTab === "research" && (
