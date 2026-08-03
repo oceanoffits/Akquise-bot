@@ -5,7 +5,10 @@ const TOKEN_KEY = "akquise.apiToken";
 
 export function useSettings() {
   const [serverUrl, setServerUrl] = useState(
-    () => localStorage.getItem(SERVER_URL_KEY) ?? "http://localhost:3000"
+    () =>
+      localStorage.getItem(SERVER_URL_KEY) ??
+      import.meta.env.VITE_API_URL ??
+      "http://localhost:3000"
   );
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) ?? "");
 
