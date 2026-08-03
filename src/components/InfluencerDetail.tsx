@@ -65,15 +65,6 @@ export function InfluencerDetail({ api, influencer, onChanged }: Props) {
     setBusyMessageId(null);
   }
 
-  async function handleMarkSent(messageId: string) {
-    setBusyMessageId(messageId);
-    await withBusy(async () => {
-      await api.markMessageSent(messageId);
-      onChanged();
-    });
-    setBusyMessageId(null);
-  }
-
   async function handleMarkReplied(messageId: string) {
     const replyBody = window.prompt("Antworttext (optional):") ?? undefined;
     setBusyMessageId(messageId);
